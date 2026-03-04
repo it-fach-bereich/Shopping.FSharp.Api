@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Dto\FileFormDto.fs" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <Compile Include="Controllers\ProductsController.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shopping.Products.Domain\Shopping.Products.Domain.fsproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.2" />
+    <PackageReference Update="FSharp.Core" Version="10.0.103" />
+  </ItemGroup>
+
+</Project>

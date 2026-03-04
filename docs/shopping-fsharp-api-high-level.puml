@@ -1,0 +1,50 @@
+@startuml
+
+title Shopping.FSharp.Api - High-Level Architecture
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+package "API Layer" {
+  [Shopping.FSharp.Api]
+}
+
+package "Domain Layer" {
+  [Shopping.Products.Domain]
+}
+
+package "Shared Libraries" {
+  [Shopping.Models]
+  [Shopping.Common]
+}
+
+package "Infrastructure" {
+  [Shopping.CosmosDB.Repository]
+  [Shopping.BlobStorage.Repository]
+}
+
+cloud "Azure Cosmos DB" as Cosmos
+cloud "Azure Blob Storage" as Blob
+component "Swagger / OpenAPI" as Swagger
+
+[Shopping.FSharp.Api] --> [Shopping.Products.Domain] : consumes
+[Shopping.FSharp.Api] --> Swagger
+
+[Shopping.Products.Domain] --> [Shopping.CosmosDB.Repository] : product data operations
+[Shopping.Products.Domain] --> [Shopping.BlobStorage.Repository] : product file operations
+[Shopping.Products.Domain] --> [Shopping.Models] : product/file DTOs
+
+[Shopping.CosmosDB.Repository] --> [Shopping.Common] : maps storage failures
+[Shopping.BlobStorage.Repository] --> [Shopping.Models] : file DTOs
+[Shopping.BlobStorage.Repository] --> [Shopping.Common] : maps storage failures
+
+[Shopping.CosmosDB.Repository] --> Cosmos
+[Shopping.BlobStorage.Repository] --> Blob
+
+note bottom
+  F# note:
+  The domain project references repository projects directly and uses
+  module functions as contracts (no explicit .NET interface projects).
+end note
+
+@enduml

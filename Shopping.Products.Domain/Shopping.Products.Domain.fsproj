@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Update="FSharp.Core" Version="10.0.103" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="Product.fs" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Shopping.CosmosDB.Repository\Shopping.CosmosDB.Repository.fsproj" />
+    <ProjectReference Include="..\Shopping.BlobStorage.Repository\Shopping.BlobStorage.Repository.fsproj" />
+      <ProjectReference Include="..\Shopping.Models\Shopping.Models.fsproj" />
+    </ItemGroup>
+
+</Project>
