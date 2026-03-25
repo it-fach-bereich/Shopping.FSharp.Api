@@ -1,0 +1,114 @@
+@startuml
+title Shopping.FSharp.Api - Project & Runtime Dependencies
+left to right direction
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+package "Shopping.FSharp.Api" as Api {
+  class Program
+  class ProductsController
+  class FileFormDto
+  class FileMetadataFormDto
+}
+
+package "Shopping.Products.Domain" as Domain {
+  class "Product (module)" as DomainProduct
+}
+
+package "Shopping.CosmosDB.Repository" as CosmosImpl {
+  class "Product (module)" as CosmosProductRepo
+  class "Common.Utils (module)" as CosmosUtils
+  class "Common.ServiceProviderFactory (module)" as CosmosSP
+}
+
+package "Shopping.BlobStorage.Repository" as BlobImpl {
+  class "Product (module)" as BlobProductRepo
+  class "Common.Utils (module)" as BlobUtils
+  class "Common.ServiceProviderFactory (module)" as BlobSP
+}
+
+package "Shopping.Models" as Models {
+  class Product
+  class ProductDto
+  class FileDto
+  class FileMetadata
+  class ProductMapper
+}
+
+package "Shopping.Common" as Common {
+  class "Types (module)" as CommonTypes
+  class "Utils (module)" as CommonUtils
+  class "Result<'T,'TFAILURE>" as ResultType
+  class ReadItemFailureReason
+}
+
+package "External Libraries" as External {
+  class CosmosClient <<Microsoft.Azure.Cosmos>>
+  class Container <<Microsoft.Azure.Cosmos>>
+  class BlobServiceClient <<Azure.Storage.Blobs>>
+  class BlobContainerClient <<Azure.Storage.Blobs>>
+  class Swashbuckle <<Swashbuckle.AspNetCore>>
+}
+
+' ===== Compile-time (project reference) dependencies =====
+Api ..> Domain : ProjectReference
+
+Domain ..> CosmosImpl : ProjectReference
+Domain ..> BlobImpl : ProjectReference
+Domain ..> Models : ProjectReference
+
+CosmosImpl ..> Common : ProjectReference
+
+BlobImpl ..> Models : ProjectReference
+BlobImpl ..> Common : ProjectReference
+
+' ===== Runtime wiring and call flow =====
+Program --> ProductsController : AddControllers()/MapControllers()
+ProductsController --> DomainProduct : calls domain functions
+
+DomainProduct --> CosmosProductRepo : getById/getAll/add/update/delete
+DomainProduct --> BlobProductRepo : upload/download/update/delete
+
+CosmosProductRepo --> CosmosUtils
+CosmosProductRepo --> CosmosSP
+BlobProductRepo --> BlobUtils
+BlobProductRepo --> BlobSP
+
+' ===== API/model mapping =====
+ProductsController ..> ProductMapper : maps Product <-> ProductDto
+ProductsController ..> ProductDto
+ProductsController ..> FileDto
+DomainProduct ..> Product
+DomainProduct ..> FileDto
+
+ProductMapper ..> Product
+ProductMapper ..> ProductDto
+FileDto --> FileMetadata
+
+' ===== Failure/result model =====
+ProductsController ..> ReadItemFailureReason
+DomainProduct ..> ReadItemFailureReason
+DomainProduct ..> ResultType
+CosmosUtils ..> ReadItemFailureReason
+BlobUtils ..> ReadItemFailureReason
+CommonTypes --> ResultType
+CommonTypes --> ReadItemFailureReason
+CosmosUtils ..> CommonUtils
+BlobUtils ..> CommonUtils
+
+' ===== External service clients =====
+CosmosSP --> CosmosClient : lazy singleton resolution
+CosmosProductRepo --> Container : uses container operations
+
+BlobSP --> BlobServiceClient : lazy singleton resolution
+BlobProductRepo --> BlobContainerClient : uses blob container operations
+
+Program ..> Swashbuckle : AddSwaggerGen()/UseSwaggerUI()
+
+note bottom
+  F# note:
+  Dependencies are module-level (`open ...`) and direct project references.
+  The domain orchestrates calls to repository modules rather than interface implementations.
+end note
+
+@enduml
