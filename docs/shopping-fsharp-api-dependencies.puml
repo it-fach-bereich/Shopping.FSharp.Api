@@ -3,36 +3,78 @@ title Shopping.FSharp.Api - Project & Runtime Dependencies
 left to right direction
 skinparam packageStyle rectangle
 skinparam shadowing false
+skinparam TitleFontSize 24
+skinparam LegendFontSize 18
+skinparam LegendBackgroundColor #FEFECE
+skinparam LegendBorderColor #A80036
+
+legend top center
+  <b>F# note</b>
+  Dependencies are module-level (open ...) and direct project references.
+  The domain orchestrates calls to repository modules rather than interface implementations.
+endlegend
 
 package "Shopping.FSharp.Api" as Api {
   class Program
   class ProductsController
-  class FileFormDto
-  class FileMetadataFormDto
+  class CustomersController
+  class OrdersController
+  class ShoppingControllerBase
 }
 
-package "Shopping.Products.Domain" as Domain {
+package "Shopping.FSharp.Api.Mappers" as ApiMappers {
+  class ProductMapper
+  class CustomerMapper
+  class OrderMapper
+  class FileMapper
+}
+
+package "Shopping.FSharp.Api.Dto" as ApiDto {
+  class ProductDto
+  class ProductSearchDto
+  class CustomerDto
+  class CustomerSearchDto
+  class OrderDto
+  class OrderSearchDto
+  class PlaceOrderRequestDto
+  class PlaceOrderItemRequestDto
+  class FileDto
+  class FileFormDto
+}
+
+package "Shopping.Product.Domain" as ProductDomain {
   class "Product (module)" as DomainProduct
 }
 
-package "Shopping.CosmosDB.Repository" as CosmosImpl {
-  class "Product (module)" as CosmosProductRepo
-  class "Common.Utils (module)" as CosmosUtils
-  class "Common.ServiceProviderFactory (module)" as CosmosSP
+package "Shopping.Customer.Domain" as CustomerDomain {
+  class "Customer (module)" as DomainCustomer
 }
 
-package "Shopping.BlobStorage.Repository" as BlobImpl {
-  class "Product (module)" as BlobProductRepo
-  class "Common.Utils (module)" as BlobUtils
-  class "Common.ServiceProviderFactory (module)" as BlobSP
+package "Shopping.Order.Domain" as OrderDomain {
+  class "Order (module)" as DomainOrder
+}
+
+package "Shopping.Data.Repository" as DataRepo {
+  class "Product (module)" as DataProductRepo
+  class "Customer (module)" as DataCustomerRepo
+  class "Order (module)" as DataOrderRepo
+  class "Common.Utils (module)" as DataUtils
+  class "Common.ServiceProviderFactory (module)" as DataSP
+}
+
+package "Shopping.Files.Repository" as FilesRepo {
+  class "Product (module)" as FilesProductRepo
+  class "Customer (module)" as FilesCustomerRepo
+  class "Common.Utils (module)" as FilesUtils
+  class "Common.ServiceProviderFactory (module)" as FilesSP
 }
 
 package "Shopping.Models" as Models {
   class Product
-  class ProductDto
-  class FileDto
+  class Customer
+  class Order
+  class OrderItem
   class FileMetadata
-  class ProductMapper
 }
 
 package "Shopping.Common" as Common {
@@ -51,64 +93,111 @@ package "External Libraries" as External {
 }
 
 ' ===== Compile-time (project reference) dependencies =====
-Api ..> Domain : ProjectReference
+Api ..> ProductDomain : ProjectReference
+Api ..> CustomerDomain : ProjectReference
+Api ..> OrderDomain : ProjectReference
 
-Domain ..> CosmosImpl : ProjectReference
-Domain ..> BlobImpl : ProjectReference
-Domain ..> Models : ProjectReference
+ProductDomain ..> DataRepo : ProjectReference
+ProductDomain ..> FilesRepo : ProjectReference
+ProductDomain ..> Models : ProjectReference
 
-CosmosImpl ..> Common : ProjectReference
+CustomerDomain ..> DataRepo : ProjectReference
+CustomerDomain ..> FilesRepo : ProjectReference
+CustomerDomain ..> Models : ProjectReference
 
-BlobImpl ..> Models : ProjectReference
-BlobImpl ..> Common : ProjectReference
+OrderDomain ..> DataRepo : ProjectReference
+OrderDomain ..> Models : ProjectReference
+
+DataRepo ..> Common : ProjectReference
+
+FilesRepo ..> Models : ProjectReference
+FilesRepo ..> Common : ProjectReference
 
 ' ===== Runtime wiring and call flow =====
 Program --> ProductsController : AddControllers()/MapControllers()
+Program --> CustomersController : AddControllers()/MapControllers()
+Program --> OrdersController : AddControllers()/MapControllers()
+
+ProductsController --> ProductMapper : uses for mapping
 ProductsController --> DomainProduct : calls domain functions
+CustomersController --> CustomerMapper : uses for mapping
+CustomersController --> DomainCustomer : calls domain functions
+OrdersController --> OrderMapper : uses for mapping
+OrdersController --> DomainOrder : calls domain functions
 
-DomainProduct --> CosmosProductRepo : getById/getAll/add/update/delete
-DomainProduct --> BlobProductRepo : upload/download/update/delete
+DomainProduct --> DataProductRepo : getById/getAll/add/update/delete
+DomainProduct --> FilesProductRepo : upload/download/update/delete
 
-CosmosProductRepo --> CosmosUtils
-CosmosProductRepo --> CosmosSP
-BlobProductRepo --> BlobUtils
-BlobProductRepo --> BlobSP
+DomainCustomer --> DataCustomerRepo : getById/getAll/search/add/update/delete
+DomainCustomer --> FilesCustomerRepo : upload/download/update/delete
+
+DomainOrder --> DataOrderRepo : getById/getAll/search/add/update/delete
+DomainOrder --> DataProductRepo : find/update for order items
+DomainOrder --> DataCustomerRepo : getById for customer validation
+
+DataProductRepo --> DataUtils
+DataProductRepo --> DataSP
+DataCustomerRepo --> DataUtils
+DataCustomerRepo --> DataSP
+DataOrderRepo --> DataUtils
+DataOrderRepo --> DataSP
+
+FilesProductRepo --> FilesUtils
+FilesProductRepo --> FilesSP
+FilesCustomerRepo --> FilesUtils
+FilesCustomerRepo --> FilesSP
 
 ' ===== API/model mapping =====
-ProductsController ..> ProductMapper : maps Product <-> ProductDto
+ProductsController ..> ProductMapper : uses for mapping
 ProductsController ..> ProductDto
-ProductsController ..> FileDto
+ProductsController ..> ProductSearchDto
+CustomersController ..> CustomerMapper : uses for mapping
+CustomersController ..> CustomerDto
+CustomersController ..> CustomerSearchDto
+CustomersController ..> FileFormDto
+OrdersController ..> OrderMapper : uses for mapping
+OrdersController ..> OrderDto
+OrdersController ..> OrderSearchDto
+OrdersController ..> PlaceOrderRequestDto
 DomainProduct ..> Product
-DomainProduct ..> FileDto
+DomainCustomer ..> Customer
+DomainOrder ..> Order
+DomainOrder ..> OrderItem
+DomainOrder ..> Product
 
 ProductMapper ..> Product
 ProductMapper ..> ProductDto
-FileDto --> FileMetadata
+CustomerMapper ..> Customer
+CustomerMapper ..> CustomerDto
+OrderMapper ..> Order
+OrderMapper ..> OrderDto
+FileMapper ..> FileMetadata
+FileMapper ..> FileDto
 
 ' ===== Failure/result model =====
 ProductsController ..> ReadItemFailureReason
+CustomersController ..> ReadItemFailureReason
+OrdersController ..> ReadItemFailureReason
 DomainProduct ..> ReadItemFailureReason
-DomainProduct ..> ResultType
-CosmosUtils ..> ReadItemFailureReason
-BlobUtils ..> ReadItemFailureReason
+DomainCustomer ..> ReadItemFailureReason
+DomainOrder ..> ReadItemFailureReason
+DataUtils ..> ReadItemFailureReason
+FilesUtils ..> ReadItemFailureReason
 CommonTypes --> ResultType
 CommonTypes --> ReadItemFailureReason
-CosmosUtils ..> CommonUtils
-BlobUtils ..> CommonUtils
+DataUtils ..> CommonUtils
+FilesUtils ..> CommonUtils
 
 ' ===== External service clients =====
-CosmosSP --> CosmosClient : lazy singleton resolution
-CosmosProductRepo --> Container : uses container operations
+DataSP --> CosmosClient : lazy singleton resolution
+DataProductRepo --> Container : uses container operations
+DataCustomerRepo --> Container : uses container operations
+DataOrderRepo --> Container : uses container operations
 
-BlobSP --> BlobServiceClient : lazy singleton resolution
-BlobProductRepo --> BlobContainerClient : uses blob container operations
+FilesSP --> BlobServiceClient : lazy singleton resolution
+FilesProductRepo --> BlobContainerClient : uses blob container operations
+FilesCustomerRepo --> BlobContainerClient : uses blob container operations
 
 Program ..> Swashbuckle : AddSwaggerGen()/UseSwaggerUI()
-
-note bottom
-  F# note:
-  Dependencies are module-level (`open ...`) and direct project references.
-  The domain orchestrates calls to repository modules rather than interface implementations.
-end note
 
 @enduml

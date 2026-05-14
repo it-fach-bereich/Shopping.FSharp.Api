@@ -1,4 +1,4 @@
-﻿module Shopping.Files.Repository.Product
+module Shopping.Files.Repository.Customer
 
 open System.IO
 open System.Threading.Tasks
@@ -9,7 +9,7 @@ open Shopping.Common.Types
 open Shopping.Models.Domain.File
 
 let private getContainer () =
-    getService<BlobServiceClient>().GetBlobContainerClient("products-files")
+    getService<BlobServiceClient>().GetBlobContainerClient("customers-files")
 
 let uploadFile : File -> Stream -> _ =
     uploadFileAsync (getContainer ())
@@ -19,6 +19,6 @@ let downloadFile =
 
 let updateFile : File -> Stream -> _ =
     updateFileAsync (getContainer ())
-    
+
 let deleteFile =
     deleteFileAsync (getContainer ())

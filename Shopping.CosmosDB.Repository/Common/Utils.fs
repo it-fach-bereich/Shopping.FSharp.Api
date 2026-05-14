@@ -1,7 +1,10 @@
 module internal Shopping.Data.Repository.Common.Utils
 
 open System
+open System.Linq
+open System.Linq.Expressions
 open Microsoft.Azure.Cosmos
+open Microsoft.Azure.Cosmos.Linq
 open Shopping.Common.Types
 open Newtonsoft.Json.Linq
 open Shopping.Common.Utils
@@ -28,11 +31,9 @@ let private getFeedResult<'T> (feed:FeedIterator<'T>) =
             | false -> return []
     }
 
-let internal getPartitionKey partitionKey =
-    match box partitionKey with
-        | :? int as i -> PartitionKey(partitionKeyValue = i)
-        | :? string as s -> PartitionKey(partitionKeyValue = s)
-        | _ -> raise(NotSupportedException(message = "Only int and string are supported as partition key types"))
+let internal getPartitionKey = function
+    | StringKey s -> PartitionKey(partitionKeyValue = s)
+    | IntKey i    -> PartitionKey(partitionKeyValue = i)
 
 let getByIdAsync<'T> (container:Container) id partitionKey =
     task {
@@ -64,6 +65,23 @@ let getAllAsync<'T> (container:Container) =
         | _ -> return Failure (Exception "Unexpected data operation error.")
     }
 
+let findAsync<'T> (container: Container) (predicate: Expression<Func<'T, bool>>) =
+    task {
+        try
+            let iterator =
+                container.GetItemLinqQueryable<'T>()
+                    .Where(predicate)
+                    .ToFeedIterator()
+            let results = ResizeArray<'T>()
+            while iterator.HasMoreResults do
+                let! response = iterator.ReadNextAsync()
+                results.AddRange(response)
+            return Success (results |> Seq.toList)
+        with
+        | :? CosmosException as ex -> return Failure (mapDataException ex)
+        | _ -> return Failure (Exception "Unexpected data operation error.")
+    }
+
 let addAsync<'T> (container:Container) entity =
     task {
         try
@@ -77,7 +95,7 @@ let addAsync<'T> (container:Container) entity =
 let updateAsync<'T> (container:Container) entity=
      task {
          try
-            let category = getPropertyValue<'T> "Category" entity
+            let category = getPropertyValue<'T> "Category" entity |> string |> StringKey
             let! response = container.UpsertItemAsync<'T>(entity, getPartitionKey(category))
             return Success response.Resource
          with

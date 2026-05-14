@@ -4,13 +4,19 @@ title Shopping.FSharp.Api - High-Level Architecture
 left to right direction
 skinparam packageStyle rectangle
 skinparam shadowing false
+skinparam TitleFontSize 24
+skinparam LegendFontSize 18
+skinparam LegendBackgroundColor #FEFECE
+skinparam LegendBorderColor #A80036
 
 package "API Layer" {
   [Shopping.FSharp.Api]
 }
 
 package "Domain Layer" {
-  [Shopping.Products.Domain]
+  [Shopping.Product.Domain]
+  [Shopping.Customer.Domain]
+  [Shopping.Order.Domain]
 }
 
 package "Shared Libraries" {
@@ -19,32 +25,42 @@ package "Shared Libraries" {
 }
 
 package "Infrastructure" {
-  [Shopping.CosmosDB.Repository]
-  [Shopping.BlobStorage.Repository]
+  [Shopping.Data.Repository]
+  [Shopping.Files.Repository]
 }
 
 cloud "Azure Cosmos DB" as Cosmos
 cloud "Azure Blob Storage" as Blob
 component "Swagger / OpenAPI" as Swagger
 
-[Shopping.FSharp.Api] --> [Shopping.Products.Domain] : consumes
+[Shopping.FSharp.Api] --> [Shopping.Product.Domain] : consumes
+[Shopping.FSharp.Api] --> [Shopping.Customer.Domain] : consumes
+[Shopping.FSharp.Api] --> [Shopping.Order.Domain] : consumes
 [Shopping.FSharp.Api] --> Swagger
 
-[Shopping.Products.Domain] --> [Shopping.CosmosDB.Repository] : product data operations
-[Shopping.Products.Domain] --> [Shopping.BlobStorage.Repository] : product file operations
-[Shopping.Products.Domain] --> [Shopping.Models] : product/file DTOs
+[Shopping.Product.Domain] --> [Shopping.Data.Repository] : product data operations
+[Shopping.Product.Domain] --> [Shopping.Files.Repository] : product file operations
+[Shopping.Product.Domain] --> [Shopping.Models] : product DTOs
 
-[Shopping.CosmosDB.Repository] --> [Shopping.Common] : maps storage failures
-[Shopping.BlobStorage.Repository] --> [Shopping.Models] : file DTOs
-[Shopping.BlobStorage.Repository] --> [Shopping.Common] : maps storage failures
+[Shopping.Customer.Domain] --> [Shopping.Data.Repository] : customer data operations
+[Shopping.Customer.Domain] --> [Shopping.Files.Repository] : customer file operations
+[Shopping.Customer.Domain] --> [Shopping.Models] : customer DTOs
 
-[Shopping.CosmosDB.Repository] --> Cosmos
-[Shopping.BlobStorage.Repository] --> Blob
+[Shopping.Order.Domain] --> [Shopping.Data.Repository] : order data operations
+[Shopping.Order.Domain] --> [Shopping.Models] : order DTOs
 
-note bottom
-  F# note:
-  The domain project references repository projects directly and uses
-  module functions as contracts (no explicit .NET interface projects).
-end note
+[Shopping.Data.Repository] --> [Shopping.Common] : maps storage failures
+[Shopping.Files.Repository] --> [Shopping.Models] : file DTOs
+[Shopping.Files.Repository] --> [Shopping.Common] : maps storage failures
+
+[Shopping.Data.Repository] --> Cosmos
+[Shopping.Files.Repository] --> Blob
+
+legend top center
+  <b>F# note</b>
+  Three domain layers (Product, Customer, Order) reference
+  repository projects directly and use module functions as
+  contracts (no explicit .NET interface projects).
+endlegend
 
 @enduml

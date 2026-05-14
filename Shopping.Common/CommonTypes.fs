@@ -21,6 +21,10 @@ type SearchFilter =
       Skip:int
       Limit:int
       OrderBy:OrderBy list }
+type CosmosPartitionKey =
+    | StringKey of string
+    | IntKey of int
+
 type ReadItemFailureReason =
     | DataNotFound of string
     | BadRequest of string

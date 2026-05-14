@@ -17,3 +17,11 @@ type Product = {
     Clearance: bool
 }
 
+type ProductSearch = {
+    Category: string option
+    Name: string option
+    MinPrice: decimal option
+    MaxPrice: decimal option
+    Clearance: bool option
+}
+

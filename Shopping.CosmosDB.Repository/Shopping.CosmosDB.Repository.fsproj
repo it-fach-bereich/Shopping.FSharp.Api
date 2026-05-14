@@ -8,7 +8,10 @@
     <ItemGroup>
       <Compile Include="Common\ServiceProviderFactory.fs" />
       <Compile Include="Common\Utils.fs" />
+      <Compile Include="Order.fs" />
       <Compile Include="Product.fs" />
+      <Compile Include="Customer.fs" />
+      <Compile Include="Order.fs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -22,6 +25,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Shopping.Common\Shopping.Common.fsproj" />
+      <ProjectReference Include="..\Shopping.Models\Shopping.Models.fsproj" />
     </ItemGroup>
 
     <ItemGroup>

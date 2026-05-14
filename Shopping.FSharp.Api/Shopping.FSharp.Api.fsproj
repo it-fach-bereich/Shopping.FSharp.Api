@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -6,15 +6,30 @@
 
   <ItemGroup>
     <Compile Include="Dto\FileFormDto.fs" />
-  </ItemGroup>
-  
-  <ItemGroup>
+    <Compile Include="Dto\ProductDto.fs" />
+    <Compile Include="Dto\ProductSearchDto.fs" />
+    <Compile Include="Dto\FileDto.fs" />
+    <Compile Include="Dto\CustomerDto.fs" />
+    <Compile Include="Dto\CustomerSearchDto.fs" />
+    <Compile Include="Dto\OrderDto.fs" />
+    <Compile Include="Dto\OrderSearchDto.fs" />
+    <Compile Include="Dto\PlaceOrderItemRequestDto.fs" />
+    <Compile Include="Dto\PlaceOrderRequestDto.fs" />
+    <Compile Include="Mappers\ProductMapper.fs" />
+    <Compile Include="Mappers\FileMapper.fs" />
+    <Compile Include="Mappers\CustomerMapper.fs" />
+    <Compile Include="Mappers\OrderMapper.fs" />
+    <Compile Include="Controllers\ShoppingControllerBase.fs" />
     <Compile Include="Controllers\ProductsController.fs" />
+    <Compile Include="Controllers\CustomersController.fs" />
+    <Compile Include="Controllers\OrdersController.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shopping.Products.Domain\Shopping.Products.Domain.fsproj" />
+    <ProjectReference Include="..\Shopping.Product.Domain\Shopping.Product.Domain.fsproj" />
+    <ProjectReference Include="..\Shopping.Customer.Domain\Shopping.Customer.Domain.fsproj" />
+    <ProjectReference Include="..\Shopping.Order.Domain\Shopping.Order.Domain.fsproj" />
   </ItemGroup>
 
   <ItemGroup>

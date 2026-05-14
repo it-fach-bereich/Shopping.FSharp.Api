@@ -1,17 +1,17 @@
-﻿namespace Shopping.FSharp.Api.Controllers
+namespace Shopping.FSharp.Api.Controllers
 
 open Microsoft.AspNetCore.Mvc
 open Shopping.Common.Types
 open Shopping.FSharp.Api.Dto
 open Shopping.FSharp.Api.Dto.File
-open Shopping.FSharp.Api.Dto.Product
-open Shopping.FSharp.Api.Dto.ProductSearch
+open Shopping.FSharp.Api.Dto.Customer
+open Shopping.FSharp.Api.Dto.CustomerSearch
 open Shopping.FSharp.Api.Mappers
-open Shopping.Products.Domain
+open Shopping.Customer.Domain
 
 [<ApiController>]
 [<Route("api/[controller]")>]
-type ProductsController () =
+type CustomersController () =
     inherit ShoppingControllerBase()
 
 
@@ -19,68 +19,69 @@ type ProductsController () =
     [<Route("")>]
     member this.GetAll() =
         task {
-            let! result = getAllProducts
+            let! result = getAllCustomers
             return
                 match result with
                 | Success x ->
-                    let products =
+                    let customers =
                         x
                         |> Seq.collect (fun feed -> feed :> seq<_>)
-                        |> Seq.map ProductMapper.toDto
-                    this.Ok(products) :> IActionResult
+                        |> Seq.map CustomerMapper.toDto
+                    this.Ok(customers) :> IActionResult
                 | Failure failureReason -> this.ToActionResult(failureReason)
         }
 
     [<HttpGet>]
-    [<Route("{id}/{category}")>]
-    member this.GetById(id: string, category: string) =
+    [<Route("{id}")>]
+    member this.GetById(id: string) =
         task {
-            let! result = getProductById id (StringKey category)
+            let! result = getCustomerById id (StringKey id)
             return
                 match result with
-                | Success x -> this.Ok(ProductMapper.toDto x) :> IActionResult
+                | Success x -> this.Ok(CustomerMapper.toDto x) :> IActionResult
                 | Failure failureReason -> this.ToActionResult(failureReason)
         }
 
     [<HttpPost>]
     [<Route("search")>]
-    member this.Search([<FromBody>] search: ProductSearchDto) =
+    member this.Search([<FromBody>] search: CustomerSearchDto) =
         task {
-            let! result = searchProducts (ProductMapper.toSearch search)
+            let! result = searchCustomers (CustomerMapper.toSearch search)
             return
                 match result with
-                | Success x -> this.Ok(x |> List.map ProductMapper.toDto) :> IActionResult
+                | Success x -> this.Ok(x |> List.map CustomerMapper.toDto) :> IActionResult
                 | Failure failureReason -> this.ToActionResult(failureReason)
         }
+
     [<HttpPost>]
     [<Route("")>]
-    member this.Add([<FromBody>] product: ProductDto) =
+    member this.Add([<FromBody>] customer: CustomerDto) =
         task {
-            let! result = addProduct (ProductMapper.toEntity product)
+            let! result = addCustomer (CustomerMapper.toEntity customer)
             return
                 match result with
                 | Success x ->
-                    let dto = ProductMapper.toDto x
-                    this.CreatedAtAction("GetById", {| id = dto.Id; category = dto.Category |}, dto) :> IActionResult
+                    let dto = CustomerMapper.toDto x
+                    this.CreatedAtAction("GetById", {| id = dto.Id |}, dto) :> IActionResult
                 | Failure failureReason -> this.ToActionResult(failureReason)
         }
-    
+
     [<HttpPut>]
     [<Route("")>]
-    member this.Update([<FromBody>] product: ProductDto) =
+    member this.Update([<FromBody>] customer: CustomerDto) =
         task {
-            let! result = updateProduct (ProductMapper.toEntity product)
+            let! result = updateCustomer (CustomerMapper.toEntity customer)
             return
                 match result with
                 | Success _ -> this.NoContent() :> IActionResult
                 | Failure failureReason -> this.ToActionResult(failureReason)
         }
-    
+
     [<HttpDelete>]
-    [<Route("{id}/{category}")>]
-    member this.Delete(id: string, category: string) =
+    [<Route("{id}")>]
+    member this.Delete(id: string) =
         task {
-            let! result = deleteProduct id (StringKey category)
+            let! result = deleteCustomer id (StringKey id)
             return
                 match result with
                 | Success _ -> this.NoContent() :> IActionResult
@@ -106,7 +107,7 @@ type ProductsController () =
             }
 
             use stream = form.File.OpenReadStream()
-            let! result = uploadProductFile (FileMapper.toEntity fileDto) stream
+            let! result = uploadCustomerFile (FileMapper.toEntity fileDto) stream
             return
                 match result with
                 | Success _ -> this.CreatedAtAction("DownloadFile", fileDto, fileDto) :> IActionResult
@@ -117,7 +118,7 @@ type ProductsController () =
     [<Route("file/download")>]
     member this.DownloadFile([<FromBody>] fileDto: FileDto) =
         task {
-            let! result = downloadProductFile (FileMapper.toEntity fileDto)
+            let! result = downloadCustomerFile (FileMapper.toEntity fileDto)
             return
                 match result with
                 | Success stream -> this.File(stream, fileDto.ContentType, fileDto.FileName) :> IActionResult
@@ -143,7 +144,7 @@ type ProductsController () =
             }
 
             use stream = form.File.OpenReadStream()
-            let! result = updateProductFile (FileMapper.toEntity fileDto) stream
+            let! result = updateCustomerFile (FileMapper.toEntity fileDto) stream
             return
                 match result with
                 | Success _ -> this.Ok(fileDto) :> IActionResult
@@ -154,7 +155,7 @@ type ProductsController () =
     [<Route("file/delete")>]
     member this.DeleteFile([<FromBody>] fileDto: FileDto) =
         task {
-            let! result = deleteProductFile (FileMapper.toEntity fileDto)
+            let! result = deleteCustomerFile (FileMapper.toEntity fileDto)
             return
                 match result with
                 | Success _ -> this.NoContent() :> IActionResult

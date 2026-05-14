@@ -7,7 +7,7 @@ open Azure
 open Azure.Storage.Blobs
 open Azure.Storage.Blobs.Models
 open Shopping.Common.Types
-open Shopping.Models.Dto.FileDto
+open Shopping.Models.Domain.File
 
 let private mapFileStorageException (ex: RequestFailedException) =
     match ex.Status with
@@ -27,7 +27,7 @@ let getBlobPath file =
     else
         file.Folder + "/" + file.FileName
 
-let getBlobMetadata (file: FileDto) =
+let getBlobMetadata (file: File) =
     match file.Metadata with
     | None -> null
     | Some metadata ->
@@ -40,7 +40,7 @@ let getBlobMetadata (file: FileDto) =
         | None -> ()
         if dictionary.Count = 0 then null else dictionary
 
-let uploadFileAsync (containerClient: BlobContainerClient) (file: FileDto) (content: Stream) =
+let uploadFileAsync (containerClient: BlobContainerClient) (file: File) (content: Stream) =
     task {
         try
             let blobPath = getBlobPath file
@@ -57,7 +57,7 @@ let uploadFileAsync (containerClient: BlobContainerClient) (file: FileDto) (cont
         | _ -> return Failure (Exception "Unexpected file operation error.")
     }
 
-let downloadFileAsync (containerClient: BlobContainerClient) (file: FileDto) =
+let downloadFileAsync (containerClient: BlobContainerClient) (file: File) =
     task {
         try
             let blobPath = getBlobPath file
@@ -69,7 +69,7 @@ let downloadFileAsync (containerClient: BlobContainerClient) (file: FileDto) =
         | _ -> return Failure (Exception "Unexpected file operation error.")
     }
 
-let updateFileAsync (containerClient: BlobContainerClient) (file: FileDto) (content: Stream) =
+let updateFileAsync (containerClient: BlobContainerClient) (file: File) (content: Stream) =
     task {
         try
             let blobPath = getBlobPath file
@@ -88,7 +88,7 @@ let updateFileAsync (containerClient: BlobContainerClient) (file: FileDto) (cont
         | _ -> return Failure (Exception "Unexpected file operation error.")
     }
 
-let deleteFileAsync (containerClient: BlobContainerClient) (file: FileDto) =
+let deleteFileAsync (containerClient: BlobContainerClient) (file: File) =
     task {
         try
             let blobPath = getBlobPath file

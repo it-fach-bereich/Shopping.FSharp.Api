@@ -6,10 +6,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <Compile Include="Domain\Order.fs" />
       <Compile Include="Domain\Product.fs" />
-      <Compile Include="Dto\Product.fs" />
-      <Compile Include="Dto\FileDto.fs" />
-      <Compile Include="ProductMapper.fs" />
+      <Compile Include="Domain\Customer.fs" />
+      <Compile Include="Domain\File.fs" />
+      <Compile Include="Domain\Order.fs" />
     </ItemGroup>
 
     <ItemGroup>

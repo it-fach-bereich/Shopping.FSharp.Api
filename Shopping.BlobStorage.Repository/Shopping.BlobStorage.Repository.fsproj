@@ -12,7 +12,9 @@
     <ItemGroup>
         <Compile Include="Common\ServiceProviderFactory.fs" />
         <Compile Include="Common\Utils.fs" />
+        <Compile Include="Customer.fs" />
       <Compile Include="Product.fs" />
+      <Compile Include="Customer.fs" />
     </ItemGroup>
 
     <ItemGroup>

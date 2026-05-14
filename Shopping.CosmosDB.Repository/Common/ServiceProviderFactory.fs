@@ -25,8 +25,16 @@ let private initializedServiceProvider = lazy (
     |> Async.AwaitTask
     |> Async.RunSynchronously
     |> ignore
-    cosmosClient.GetDatabase(cosmosDatabase)
-        .CreateContainerIfNotExistsAsync(cosmosContainer, "/category")
+    let database = cosmosClient.GetDatabase(cosmosDatabase)
+    database.CreateContainerIfNotExistsAsync(cosmosContainer, "/category")
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+    |> ignore
+    database.CreateContainerIfNotExistsAsync("Customers", "/id")
+    |> Async.AwaitTask
+    |> Async.RunSynchronously
+    |> ignore
+    database.CreateContainerIfNotExistsAsync("Orders", "/customerId")
     |> Async.AwaitTask
     |> Async.RunSynchronously
     |> ignore
